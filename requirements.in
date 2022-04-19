@@ -1,0 +1,13 @@
+# Notebooks
+jupyterlab
+
+# Dataframes
+pandas
+
+# HTTP
+requests
+
+# Formatting, typing
+black[jupyter]
+isort
+mypy
