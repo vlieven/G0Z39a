@@ -1,5 +1,6 @@
 # Notebooks
 jupyterlab
+ipywidgets
 
 # Dataframes
 pandas
@@ -7,7 +8,13 @@ pandas
 # HTTP
 requests
 
+# Progress bars
+tqdm
+
 # Formatting, typing
 black[jupyter]
 isort
 mypy
+
+# Stubs
+types-requests
