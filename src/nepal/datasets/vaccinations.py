@@ -9,6 +9,9 @@ from .config import DATASETS_ROOT_DIR
 
 
 class Vaccinations(Dataset):
+    """Class which represents the vaccinations dataset provided by the CDC.
+    Source: https://data.cdc.gov/Vaccinations/COVID-19-Vaccinations-in-the-United-States-County/8xkx-amqh
+    """
 
     url: Final[str] = "https://data.cdc.gov/api/views/8xkx-amqh/rows.csv?accessType=DOWNLOAD"
     destination: Final[Path] = DATASETS_ROOT_DIR / "raw" / "vaccinations"
@@ -29,7 +32,9 @@ class Vaccinations(Dataset):
     def _collect_data(cls) -> None:
         file: str = cls._filename()
         with requests.get(cls.url, stream=True) as response:
-            cls._store_response(response, folder=cls.destination, file=file, description="Vaccination data")
+            cls._store_response(
+                response, folder=cls.destination, file=file, description="Vaccination data"
+            )
 
     @classmethod
     def load(cls) -> pd.DataFrame:

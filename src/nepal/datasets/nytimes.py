@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Dict, Final, Sequence
+from typing import Final, Iterable, Mapping, Sequence, Union
 
 import pandas as pd
 import requests
@@ -10,14 +10,20 @@ from .config import DATASETS_ROOT_DIR
 
 
 class NYTimes(Dataset):
-    """Module which collects the Covid-19 data published by the New York Times.
-
-    To use, you can simply run NYTimes.collect()
+    """Class which represents the Covid-19 data published by the New York Times.
+    Source: https://github.com/nytimes/covid-19-data
     """
 
     repository: Final[str] = "https://github.com/nytimes/covid-19-data"
     destination: Final[Path] = DATASETS_ROOT_DIR / "raw" / "nytimes"
-    years: Sequence[int] = [2020, 2021, 2022]
+
+    def __init__(self, *, years: Union[int, Iterable[int]] = (2020, 2021, 2022)) -> None:
+        self._years: Sequence[int]
+
+        if isinstance(years, int):
+            self._years = [years]
+        else:
+            self._years = list(years)
 
     @classmethod
     def _filename(cls, year: int) -> str:
@@ -27,28 +33,33 @@ class NYTimes(Dataset):
     def _filepath(cls, year: int) -> Path:
         return cls.destination / cls._filename(year)
 
-    @classmethod
-    def collected(cls) -> bool:
-        return all(cls._filepath(year).is_file() for year in cls.years)
+    def collected(self) -> bool:
+        return all(self._filepath(year).is_file() for year in self._years)
 
-    @classmethod
-    def _collect_data(cls) -> None:
-        for year in cls.years:
-            file: str = cls._filename(year)
+    def _collect_data(self) -> None:
+        for year in self._years:
+            file: str = self._filename(year)
 
             logging.info(f"Downloading '{file}'")
-            with requests.get(f"{cls.repository}/raw/master/{file}", stream=True) as response:
-                cls._store_response(response, folder=cls.destination, file=file, description=f"US Covid {year} data")
+            with requests.get(f"{self.repository}/raw/master/{file}", stream=True) as response:
+                self._store_response(
+                    response,
+                    folder=self.destination,
+                    file=file,
+                    description=f"US Covid {year} data",
+                )
 
-    @classmethod
-    def load(cls) -> pd.DataFrame:
+    def load(self) -> pd.DataFrame:
         return pd.concat(
-            [pd.read_csv(cls._filepath(year), dtype=cls._schema(), parse_dates=["date"]) for year in cls.years],
+            [
+                pd.read_csv(self._filepath(year), dtype=self._schema(), parse_dates=["date"])
+                for year in self._years
+            ],
             ignore_index=True,
         )
 
     @classmethod
-    def _schema(cls) -> Dict[str, str]:
+    def _schema(cls) -> Mapping[str, str]:
         return {
             "county": "string",
             "state": "string",

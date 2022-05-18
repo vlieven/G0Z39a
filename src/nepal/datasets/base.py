@@ -1,44 +1,45 @@
 import logging
-import os
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Optional
 
 import pandas as pd
 from requests import Response
-from tqdm.auto import tqdm
+
+from .util import progressbar
 
 
 class Dataset(ABC):
-    @classmethod
+    """Base class to represent datasets."""
+
     @abstractmethod
-    def collected(cls) -> bool:
+    def collected(self) -> bool:
         raise NotImplementedError
 
-    @classmethod
-    def collect(cls, refresh: bool = False) -> None:
-        if refresh or not cls.collected():
-            cls._collect_data()
+    def collect(self, refresh: bool = False) -> None:
+        if refresh or not self.collected():
+            self._collect_data()
         else:
             logging.info("Skipping data collection: already collected")
 
-    @classmethod
     @abstractmethod
-    def _collect_data(cls) -> None:
+    def _collect_data(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def load(self) -> pd.DataFrame:
         raise NotImplementedError
 
     @classmethod
-    @abstractmethod
-    def load(cls) -> pd.DataFrame:
-        raise NotImplementedError
-
-    @classmethod
-    def _store_response(cls, response: Response, *, folder: Path, file: str, description: Optional[str] = None) -> None:
+    def _store_response(
+        cls, response: Response, *, folder: Path, file: str, description: str
+    ) -> None:
         response.raise_for_status()
+        folder.mkdir(parents=True, exist_ok=True)
 
-        os.makedirs(folder, exist_ok=True)
-
-        file_size: Optional[int] = int(response.headers.get("Content-Length", 0)) or None
-        with open(folder / file, mode="wb") as handle:
-            for chunk in tqdm(response.iter_content(chunk_size=None), desc=description, total=file_size):
+        with open(folder / file, mode="wb") as handle, progressbar.download(
+            response, description
+        ) as progress:
+            chunk_size: int = 1024
+            for chunk in response.iter_content(chunk_size=chunk_size):
                 handle.write(chunk)
+                progress.update(chunk_size)
