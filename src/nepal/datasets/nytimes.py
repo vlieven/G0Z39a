@@ -6,7 +6,6 @@ import pandas as pd
 import requests
 
 from .base import Dataset
-from .config import DATASETS_ROOT_DIR
 
 
 class NYTimes(Dataset):
@@ -15,7 +14,7 @@ class NYTimes(Dataset):
     """
 
     repository: Final[str] = "https://github.com/nytimes/covid-19-data"
-    destination: Final[Path] = DATASETS_ROOT_DIR / "raw" / "nytimes"
+    destination: Final[Path] = Dataset.ROOT_DIR / "raw" / "nytimes"
 
     def __init__(self, *, years: Union[int, Iterable[int]] = (2020, 2021, 2022)) -> None:
         self._years: Sequence[int]

@@ -6,7 +6,6 @@ import pandas as pd
 import requests
 
 from .base import Dataset
-from .config import DATASETS_ROOT_DIR
 
 
 class GovernmentResponse(Dataset):
@@ -15,7 +14,7 @@ class GovernmentResponse(Dataset):
     """
 
     url: Final[str] = "https://raw.githubusercontent.com/OxCGRT/covid-policy-tracker"
-    destination: Final[Path] = DATASETS_ROOT_DIR / "raw" / "oxcgrt"
+    destination: Final[Path] = Dataset.ROOT_DIR / "raw" / "oxcgrt"
 
     def collected(self) -> bool:
         return self._filepath.is_file()

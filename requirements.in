@@ -11,10 +11,13 @@ requests
 # Progress bars
 tqdm
 
-# Formatting, typing
+# Formatting
 black[jupyter]
 isort
-mypy
 
-# Stubs
+# Typing
+mypy
 types-requests
+
+# Graphs
+neo4j

@@ -1,9 +1,14 @@
+from __future__ import annotations
+
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import Final
 
 import pandas as pd
 from requests import Response
+
+from nepal import PROJECT_ROOT
 
 from .util import progressbar
 
@@ -11,15 +16,18 @@ from .util import progressbar
 class Dataset(ABC):
     """Base class to represent datasets."""
 
+    ROOT_DIR: Final[Path] = PROJECT_ROOT / "datasets"
+
     @abstractmethod
     def collected(self) -> bool:
         raise NotImplementedError
 
-    def collect(self, refresh: bool = False) -> None:
+    def collect(self, refresh: bool = False) -> Dataset:
         if refresh or not self.collected():
             self._collect_data()
         else:
             logging.info("Skipping data collection: already collected")
+        return self
 
     @abstractmethod
     def _collect_data(self) -> None:
@@ -28,7 +36,7 @@ class Dataset(ABC):
     def load(self) -> pd.DataFrame:
         if not self.collected():
             logging.warning("Dataset not collected yet. Collecting...")
-            self.collect()
+            self.collect(True)
         return self._load_dataframe()
 
     @abstractmethod

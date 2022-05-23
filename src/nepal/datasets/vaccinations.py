@@ -1,11 +1,10 @@
 from pathlib import Path
-from typing import Dict, Final
+from typing import Final, Mapping
 
 import pandas as pd
 import requests
 
 from .base import Dataset
-from .config import DATASETS_ROOT_DIR
 
 
 class Vaccinations(Dataset):
@@ -14,7 +13,7 @@ class Vaccinations(Dataset):
     """
 
     url: Final[str] = "https://data.cdc.gov/api/views/8xkx-amqh/rows.csv?accessType=DOWNLOAD"
-    destination: Final[Path] = DATASETS_ROOT_DIR / "raw" / "vaccinations"
+    destination: Final[Path] = Dataset.ROOT_DIR / "raw" / "vaccinations"
 
     @classmethod
     def _filename(cls) -> str:
@@ -41,7 +40,7 @@ class Vaccinations(Dataset):
         return pd.read_csv(cls._filepath(), dtype=cls._schema(), parse_dates=["Date"])
 
     @classmethod
-    def _schema(cls) -> Dict[str, str]:
+    def _schema(cls) -> Mapping[str, str]:
         return {
             "FIPS": "string",
             "MMWR_week": "UInt8",

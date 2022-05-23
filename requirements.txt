@@ -149,6 +149,8 @@ nbformat==5.3.0
     #   nbclient
     #   nbconvert
     #   notebook
+neo4j==4.4.3
+    # via -r requirements.in
 nest-asyncio==1.5.5
     # via
     #   ipykernel
@@ -215,6 +217,7 @@ python-dateutil==2.8.2
 pytz==2022.1
     # via
     #   babel
+    #   neo4j
     #   pandas
 pyzmq==22.3.0
     # via
