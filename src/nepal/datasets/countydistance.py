@@ -96,7 +96,7 @@ class CountyDistance(Dataset):
             file = ZipFile(buffer)
             file.extractall(path=folder)
 
-    def load(self) -> pd.DataFrame:
+    def _load_dataframe(self) -> pd.DataFrame:
         return pd.read_csv(self._filepath(), dtype=self._schema())
 
     @classmethod

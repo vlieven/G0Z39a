@@ -49,7 +49,7 @@ class NYTimes(Dataset):
                     description=f"US Covid {year} data",
                 )
 
-    def load(self) -> pd.DataFrame:
+    def _load_dataframe(self) -> pd.DataFrame:
         return pd.concat(
             [
                 pd.read_csv(self._filepath(year), dtype=self._schema(), parse_dates=["date"])

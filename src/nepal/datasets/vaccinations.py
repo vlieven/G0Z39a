@@ -37,7 +37,7 @@ class Vaccinations(Dataset):
             )
 
     @classmethod
-    def load(cls) -> pd.DataFrame:
+    def _load_dataframe(cls) -> pd.DataFrame:
         return pd.read_csv(cls._filepath(), dtype=cls._schema(), parse_dates=["Date"])
 
     @classmethod

@@ -25,8 +25,14 @@ class Dataset(ABC):
     def _collect_data(self) -> None:
         raise NotImplementedError
 
-    @abstractmethod
     def load(self) -> pd.DataFrame:
+        if not self.collected():
+            logging.warning("Dataset not collected yet. Collecting...")
+            self.collect()
+        return self._load_dataframe()
+
+    @abstractmethod
+    def _load_dataframe(self) -> pd.DataFrame:
         raise NotImplementedError
 
     @classmethod
