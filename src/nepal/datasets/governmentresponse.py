@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Final
+from typing import Final, Mapping
 
 import pandas as pd
 import requests
@@ -40,4 +40,34 @@ class GovernmentResponse(Dataset):
             )
 
     def _load_dataframe(self) -> pd.DataFrame:
-        return pd.read_csv(self._filepath)
+        return pd.read_csv(self._filepath, dtype=self._schema(), parse_dates=["Date"])
+
+    @classmethod
+    def _schema(cls) -> Mapping[str, str]:
+        return {
+            "CountryName": "string",
+            "CountryCode": "string",
+            "RegionName": "string",
+            "RegionCode": "string",
+            "Jurisdiction": "string",
+            "C1_combined": "string",
+            "C2_combined": "string",
+            "C3_combined": "string",
+            "C4_combined": "string",
+            "C5_combined": "string",
+            "C6_combined": "string",
+            "C7_combined": "string",
+            "C8_combined": "string",
+            "E1_combined": "string",
+            "E2_combined": "string",
+            "H1_combined": "string",
+            "H2_combined": "string",
+            "H3_combined": "string",
+            "H6_combined": "string",
+            "H7_combined": "string",
+            "H8_combined": "string",
+            "V1_combined": "string",
+            "V2_combined": "string",
+            "V3_combined": "string",
+            "V4_combined": "string",
+        }

@@ -2,7 +2,18 @@ from __future__ import annotations
 
 import itertools
 from types import TracebackType
-from typing import Any, Hashable, Iterable, Mapping, Optional, Sequence, Tuple, Type, TypeVar, Union
+from typing import (
+    Any,
+    Hashable,
+    Iterable,
+    Mapping,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)
 
 import pandas as pd
 from neo4j import GraphDatabase, Neo4jDriver, Query, Record, Result, Session, basic_auth
@@ -53,7 +64,7 @@ class Neo4jConnection:
         self, query: Union[str, Query], *, parameters: Optional[Mapping[Hashable, Any]] = None
     ) -> Sequence[Record]:
         with self.session() as session:
-            response: Result = session.run(query, parameters)
+            response: Result = session.run(query, parameters=parameters)
         return list(response)
 
     def insert_data(
@@ -66,6 +77,17 @@ class Neo4jConnection:
                 query,
                 parameters={"rows": rows[start:stop].to_dict("records")},
             )
+
+    def wipe_db(self) -> Sequence[Record]:
+        """
+        Remove all nodes, relationships, indexes and constraints.
+        """
+        return self.query(
+            """
+            MATCH (n) DETACH DELETE n
+            CALL apoc.schema.assert({},{},true) YIELD label, key RETURN *
+            """
+        )
 
     @classmethod
     def pairwise(cls, iterable: Iterable[T]) -> Iterable[Tuple[T, T]]:

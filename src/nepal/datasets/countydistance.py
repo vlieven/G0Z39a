@@ -8,7 +8,6 @@ import requests
 from requests import Response
 
 from .base import Dataset
-from .config import DATASETS_ROOT_DIR
 from .util import progressbar
 
 T = TypeVar("T")
@@ -22,7 +21,7 @@ class CountyDistance(Dataset):
     valid_census_year: Final[Set[int]] = {1990, 2000, 2010}
     valid_radius: Final[Set[int]] = {25, 50, 100, 500, -1}
 
-    destination: Final[Path] = DATASETS_ROOT_DIR / "raw" / "countydistance"
+    destination: Final[Path] = Dataset.ROOT_DIR / "raw" / "countydistance"
 
     def __init__(self, *, census_year: int = 2010, radius: int = -1) -> None:
         self._census_year: int = self.__validate_input(

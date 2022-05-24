@@ -3,20 +3,17 @@ from neo4j import Query
 
 from nepal.datasets import Dataset, NYTimes
 
-from ..connection import Neo4jConnection as Connection
-
-
-class NodeType:
-    pass
-
-
-class Relation:
-    pass
+from .base import Connection, NodeType
 
 
 class Date(NodeType):
     def __init__(self, dataset: NYTimes):
         self._dataset: Dataset = dataset
+
+    def merge(self, connection: Connection) -> None:
+        self.create_constraint(connection)
+        self.insert_nodes(connection)
+        self.connect_nodes(connection)
 
     @classmethod
     def create_constraint(cls, connection: Connection) -> None:
@@ -24,7 +21,7 @@ class Date(NodeType):
             """CREATE CONSTRAINT dates IF NOT EXISTS ON (d:Date) ASSERT d.id IS UNIQUE"""
         )
 
-    def prepare(self) -> pd.DataFrame:
+    def prepare_data(self) -> pd.DataFrame:
         data: pd.DataFrame = self._dataset.load()
 
         return data[["date"]].drop_duplicates()
@@ -33,14 +30,21 @@ class Date(NodeType):
         query: Query = Query(
             """
             UNWIND $rows AS row
-            MERGE (c:Date {category: row.category})
-            RETURN count(*) as total
+            MERGE (d:Date {id: date(row.date)})
             """
         )
 
-        data: pd.DataFrame = self.prepare()
+        data: pd.DataFrame = self.prepare_data()
         return connection.insert_data(query, rows=data)
 
+    @classmethod
+    def connect_nodes(cls, connection: Connection) -> None:
+        query: Query = Query(
+            """
+            MATCH (d:Date)
+            MATCH (e:Date {id: d.id - duration({days: 1})})
+            MERGE (d)-[:IS_AFTER]->(e)
+            """
+        )
 
-class County(NodeType):
-    pass
+        connection.query(query)
