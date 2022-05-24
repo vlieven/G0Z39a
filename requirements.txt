@@ -84,6 +84,8 @@ jinja2==3.1.1
     #   jupyterlab-server
     #   nbconvert
     #   notebook
+joblib==1.1.0
+    # via scikit-learn
 json5==0.9.6
     # via jupyterlab-server
 jsonschema==4.4.0
@@ -164,7 +166,10 @@ notebook==6.4.10
 notebook-shim==0.1.0
     # via nbclassic
 numpy==1.22.3
-    # via pandas
+    # via
+    #   pandas
+    #   scikit-learn
+    #   scipy
 packaging==21.3
     # via
     #   ipykernel
@@ -228,6 +233,10 @@ requests==2.27.1
     # via
     #   -r requirements.in
     #   jupyterlab-server
+scikit-learn==1.1.1
+    # via -r requirements.in
+scipy==1.8.1
+    # via scikit-learn
 send2trash==1.8.0
     # via
     #   jupyter-server
@@ -247,6 +256,8 @@ terminado==0.13.3
     # via
     #   jupyter-server
     #   notebook
+threadpoolctl==3.1.0
+    # via scikit-learn
 tinycss2==1.1.1
     # via nbconvert
 tokenize-rt==4.2.1
