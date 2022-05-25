@@ -9,3 +9,4 @@ quality:
 	black .
 	isort .
 	mypy .
+	pytest -v

@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
+from typing import Sequence
 
 import pandas as pd
 
 from ..connection import Neo4jConnection as Connection
 
 
-class NodeType(ABC):
+class Mergeable(ABC):
     @abstractmethod
     def merge(self, connection: Connection) -> None:
         raise NotImplementedError
@@ -14,8 +15,13 @@ class NodeType(ABC):
         raise NotImplementedError
 
 
-class RelationshipType(ABC):
-    pass
+class Steps:
+    def __init__(self, *steps: Mergeable):
+        self._steps: Sequence[Mergeable] = steps
+
+    def merge_all(self, connection: Connection) -> None:
+        for step in self._steps:
+            step.merge(connection)
 
 
-__all__ = ["Connection", "NodeType", "RelationshipType"]
+__all__ = ["Connection", "Mergeable", "Steps"]

@@ -4,10 +4,10 @@ from neo4j import Query
 
 from nepal.datasets import CountyDistance, Dataset, Vaccinations
 
-from .base import Connection, NodeType, RelationshipType
+from .base import Connection, Mergeable
 
 
-class County(NodeType):
+class County(Mergeable):
     def __init__(self, dataset: Vaccinations):
         self._dataset: Dataset = dataset
 
@@ -25,7 +25,7 @@ class County(NodeType):
         data: pd.DataFrame = self._dataset.load()
         result: pd.DataFrame = (
             data.pipe(self._keep_relevant_columns)
-            .pipe(self._keep_relevant_columns)
+            .pipe(self._add_derived_columns)
             .pipe(self._select_output_columns)
         )
 
@@ -36,7 +36,9 @@ class County(NodeType):
         return data[
             [
                 "FIPS",
-                "RecipState",
+                "Recip_State",
+                "Metro_status",
+                "SVI_CTGY",
                 "Census2019",
                 "Census2019_5PlusPop",
                 "Census2019_5to17Pop",
@@ -47,16 +49,16 @@ class County(NodeType):
 
     @classmethod
     def _add_derived_columns(cls, data: pd.DataFrame) -> pd.DataFrame:
-        data["RegionCode"] = "US_" + data["RecipState"].astype(str)
+        data["RegionCode"] = "US_" + data["Recip_State"].astype(str)
         data["Under5_Pop_Pct"] = (data["Census2019"] - data["Census2019_5PlusPop"]) / data[
             "Census2019"
         ]
-        data["5to17_Pop_Pct"] = data["Census2019_5to17Pop"] / data["Census2019"]
-        data["18to65_Pop_Pct"] = (
+        data["Between5to17_Pop_Pct"] = data["Census2019_5to17Pop"] / data["Census2019"]
+        data["Between18to65_Pop_Pct"] = (
             data["Census2019_18PlusPop"] - data["Census2019_65PlusPop"]
         ) / data["Census2019"]
         data["Plus65_Pop_Pct"] = data["Census2019_65PlusPop"] / data["Census2019"]
-        data["Is_Metro"] = np.where(data["Metro"] == "Metro", 1, 0)
+        data["Is_Metro"] = np.where(data["Metro_status"] == "Metro", 1, 0)
         data["SVI_A"] = np.where(data["SVI_CTGY"] == "A", 1, 0)
         data["SVI_B"] = np.where(data["SVI_CTGY"] == "B", 1, 0)
         data["SVI_C"] = np.where(data["SVI_CTGY"] == "C", 1, 0)
@@ -71,8 +73,8 @@ class County(NodeType):
                 "RegionCode",
                 "Census2019",
                 "Under5_Pop_Pct",
-                "5to17_Pop_Pct",
-                "18to65_Pop_Pct",
+                "Between5to17_Pop_Pct",
+                "Between18to65_Pop_Pct",
                 "Plus65_Pop_Pct",
                 "Is_Metro",
                 "SVI_A",
@@ -90,8 +92,8 @@ class County(NodeType):
             ON CREATE SET 
                 c.census = row.Census2019,
                 c.pop_under_5 = row.Under5_Pop_Pct,
-                c.pop_5_to_17 = row.5to17_Pop_Pct,
-                c.pop_18_to_65 = row.18to65_Pop_Pct,
+                c.pop_5_to_17 = row.Between5to17_Pop_Pct,
+                c.pop_18_to_65 = row.Between18to65_Pop_Pct,
                 c.pop_plus_65 = row.Plus65_Pop_Pct,
                 c.is_metro = row.Is_Metro,
                 c.svi_a = row.SVI_A,
@@ -106,14 +108,14 @@ class County(NodeType):
         )
 
         rows: pd.DataFrame = self.prepare_data()
-        connection.insert_data(query, rows=rows, batch_size=5000)
+        connection.insert_data(query, description="County nodes", rows=rows, batch_size=5000)
 
 
-class CountyDistances(RelationshipType):
+class CountyDistances(Mergeable):
     def __init__(self, dataset: CountyDistance):
         self._dataset: CountyDistance = dataset
 
-    def connect_nodes(self, connection: Connection) -> None:
+    def merge(self, connection: Connection) -> None:
         query: Query = Query(
             """
             UNWIND $rows as row
@@ -123,18 +125,18 @@ class CountyDistances(RelationshipType):
         """
         )
 
-        rows: pd.DataFrame = self.load_data()
-        connection.insert_data(query, rows=rows)
+        rows: pd.DataFrame = self.prepare_data()
+        connection.insert_data(query, description="County distances", rows=rows)
 
-    def load_data(self) -> pd.DataFrame:
+    def prepare_data(self) -> pd.DataFrame:
         radius: int = int(self._dataset.radius)
 
         data: pd.DataFrame = self._dataset.load()
         data["weight"] = (radius - data["mi_to_county"]) / radius
-        return data
+        return data[["county1", "county2", "weight"]]
 
 
-class CountyVaccinations(NodeType):
+class CountyVaccinations(Mergeable):
     def __init__(self, dataset: Vaccinations):
         self._dataset: Dataset = dataset
 
@@ -173,7 +175,7 @@ class CountyVaccinations(NodeType):
         query: Query = Query(
             """
             UNWIND $rows AS row
-            MERGE (v:Vaccinations {id: coalesce(row.FIPS, "") + ',' + coalesce(date(row.Date), "")})
+            MERGE (v:Vaccinations {id: coalesce(row.FIPS, "") + ',' + coalesce(row.Date, "")})
             ON CREATE SET 
                 v.completeness = row.Completeness_pct,
                 v.dose1_pop = row.Administered_Dose1_Pop_Pct,
@@ -195,4 +197,6 @@ class CountyVaccinations(NodeType):
         )
 
         rows: pd.DataFrame = self.prepare_data()
-        connection.insert_data(query, rows=rows, batch_size=5000)
+        connection.insert_data(
+            query, description="Vaccination nodes", rows=rows, batch_size=5000
+        )

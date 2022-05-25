@@ -3,10 +3,10 @@ from neo4j import Query
 
 from nepal.datasets import Dataset, NYTimes
 
-from .base import Connection, NodeType
+from .base import Connection, Mergeable
 
 
-class Date(NodeType):
+class Date(Mergeable):
     def __init__(self, dataset: NYTimes):
         self._dataset: Dataset = dataset
 
@@ -35,7 +35,7 @@ class Date(NodeType):
         )
 
         data: pd.DataFrame = self.prepare_data()
-        return connection.insert_data(query, rows=data)
+        return connection.insert_data(query, description="Date nodes", rows=data)
 
     @classmethod
     def connect_nodes(cls, connection: Connection) -> None:

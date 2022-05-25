@@ -3,10 +3,10 @@ from neo4j import Query
 
 from nepal.datasets import Dataset, GovernmentResponse
 
-from .base import Connection, NodeType
+from .base import Connection, Mergeable
 
 
-class State(NodeType):
+class State(Mergeable):
     def __init__(self, dataset: GovernmentResponse):
         self._dataset: Dataset = dataset
 
@@ -35,18 +35,10 @@ class State(NodeType):
         )
 
         data: pd.DataFrame = self.prepare_data()
-        return connection.insert_data(query, rows=data)
+        return connection.insert_data(query, description="State nodes", rows=data)
 
 
-import pandas as pd
-from neo4j import Query
-
-from nepal.datasets import Dataset, GovernmentResponse
-
-from .base import Connection, NodeType
-
-
-class StateMeasures(NodeType):
+class StateMeasures(Mergeable):
     def __init__(self, dataset: GovernmentResponse):
         self._dataset: Dataset = dataset
 
@@ -78,7 +70,9 @@ class StateMeasures(NodeType):
         )
 
         rows: pd.DataFrame = self.prepare_data()
-        connection.insert_data(query, rows=rows, batch_size=5000)
+        connection.insert_data(
+            query, description="Government measures", rows=rows, batch_size=5000
+        )
 
     def prepare_data(self) -> pd.DataFrame:
         data: pd.DataFrame = self._dataset.load()
