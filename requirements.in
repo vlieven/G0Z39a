@@ -2,11 +2,21 @@
 jupyterlab
 ipywidgets
 
-# Dataframes
-pandas
+# Visualization
+matplotlib
+seaborn
 
-# Machine Learning
+# Dataframes
+pandas >= 1.4.2
+
+# Statistical Learning
 scikit-learn
+lightgbm
+sktime
+statsmodels >= 0.13.2
+
+# Hyperparameter tuning
+optuna
 
 # HTTP
 requests

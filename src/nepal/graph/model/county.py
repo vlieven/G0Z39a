@@ -33,19 +33,23 @@ class County(Mergeable):
 
     @classmethod
     def _keep_relevant_columns(cls, data: pd.DataFrame) -> pd.DataFrame:
-        return data[
-            [
-                "FIPS",
-                "Recip_State",
-                "Metro_status",
-                "SVI_CTGY",
-                "Census2019",
-                "Census2019_5PlusPop",
-                "Census2019_5to17Pop",
-                "Census2019_18PlusPop",
-                "Census2019_65PlusPop",
+        return (
+            data[
+                [
+                    "FIPS",
+                    "Recip_State",
+                    "Metro_status",
+                    "SVI_CTGY",
+                    "Census2019",
+                    "Census2019_5PlusPop",
+                    "Census2019_5to17Pop",
+                    "Census2019_18PlusPop",
+                    "Census2019_65PlusPop",
+                ]
             ]
-        ].drop_duplicates()
+            .drop_duplicates()
+            .dropna(subset=["FIPS"])
+        )
 
     @classmethod
     def _add_derived_columns(cls, data: pd.DataFrame) -> pd.DataFrame:
@@ -122,7 +126,7 @@ class CountyDistances(Mergeable):
             MATCH (a:County {fips: row.county1})
             MATCH (b:County {fips: row.county2})
             MERGE (a)-[:IS_NEAR {weight: row.weight}]-(b)
-        """
+            """
         )
 
         rows: pd.DataFrame = self.prepare_data()
@@ -193,7 +197,7 @@ class CountyVaccinations(Mergeable):
             MATCH (d:Date {id: date(row.Date)})
             MATCH (c:County {fips: row.FIPS})
             MERGE (c)<-[:IN_COUNTY]-(v)-[:REPORTED_ON]->(d)
-        """
+            """
         )
 
         rows: pd.DataFrame = self.prepare_data()
