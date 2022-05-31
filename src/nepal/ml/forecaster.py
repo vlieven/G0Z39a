@@ -5,13 +5,32 @@ from typing import Any, Collection, Dict, Iterable, List, Optional
 
 import lightgbm as lgb
 import pandas as pd
+from sklearn.pipeline import Pipeline
 from sktime.forecasting.base import ForecastingHorizon
 
 
 class BaseForecaster(ABC):
-    @abstractmethod
+    def __init__(self) -> None:
+        self._transformers: Pipeline = Pipeline(steps=[])
+
     def fit(
-        self, y: pd.DataFrame, Xs: Optional[Iterable[pd.DataFrame]] = None, **kwargs: Any
+        self,
+        y: pd.DataFrame,
+        Xs: Optional[Iterable[pd.DataFrame]] = None,
+        transformers: Optional[Pipeline] = None,
+        **kwargs: Any,
+    ) -> BaseForecaster:
+        if transformers:
+            self._transformers = transformers
+
+        if not Xs:
+            Xs = []
+
+        return self._fit(y=y, Xs=Xs, **kwargs)
+
+    @abstractmethod
+    def _fit(
+        self, y: pd.DataFrame, Xs: Iterable[pd.DataFrame], **kwargs: Any
     ) -> BaseForecaster:
         raise NotImplementedError
 
@@ -28,13 +47,26 @@ class BaseForecaster(ABC):
             """
         )
 
-    @abstractmethod
     def forecast(
         self,
         fh: ForecastingHorizon,
         y: pd.DataFrame,
         *,
-        X: Optional[Iterable[pd.DataFrame]] = None,
+        Xs: Optional[Iterable[pd.DataFrame]] = None,
+        **kwargs: Any,
+    ) -> pd.DataFrame:
+        if not Xs:
+            Xs = []
+
+        return self._forecast(fh=fh, y=y, Xs=Xs, **kwargs)
+
+    @abstractmethod
+    def _forecast(
+        self,
+        fh: ForecastingHorizon,
+        y: pd.DataFrame,
+        *,
+        Xs: Iterable[pd.DataFrame],
         **kwargs: Any,
     ) -> pd.DataFrame:
         raise NotImplementedError
@@ -99,19 +131,19 @@ class BaseForecaster(ABC):
 
 class LGBMForecaster(BaseForecaster):
     def __init__(self, estimator: lgb.LGBMModel, lag: int = 0) -> None:
+        super().__init__()
+
         self._model: lgb.LGBMModel = estimator
         self._lag: int = lag
+        self._transformers: Optional[Pipeline] = None
 
     @property
     def lag(self) -> int:
         return self._lag
 
-    def fit(
-        self, y: pd.DataFrame, Xs: Optional[Iterable[pd.DataFrame]] = None, **kwargs: Any
+    def _fit(
+        self, y: pd.DataFrame, Xs: Iterable[pd.DataFrame], **kwargs: Any
     ) -> LGBMForecaster:
-        if not Xs:
-            Xs = []
-
         targets: Iterable[str] = y.columns
         y_lagged: pd.DataFrame = self._add_lagged_features(y, lag=self._lag, forecasting=False)
 
@@ -124,17 +156,14 @@ class LGBMForecaster(BaseForecaster):
         self._model = self._model.fit(X=X_t, y=y_t, **kwargs)
         return self
 
-    def forecast(
+    def _forecast(
         self,
         fh: ForecastingHorizon,
         y: pd.DataFrame,
         *,
-        Xs: Optional[Iterable[pd.DataFrame]] = None,
+        Xs: Iterable[pd.DataFrame],
         **kwargs: Any,
     ) -> pd.DataFrame:
-        if not Xs:
-            Xs = []
-
         cutoff: pd.Timestamp = y.index.get_level_values(-1).max()
         start: pd.Timestamp = cutoff - pd.Timedelta(days=self.lag)
         absolute: ForecastingHorizon = fh.to_absolute(cutoff=cutoff.to_period(freq="D"))
