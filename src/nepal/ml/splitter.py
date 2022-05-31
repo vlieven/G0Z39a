@@ -1,6 +1,7 @@
 from typing import Iterator, Tuple, Union, cast
 
 import pandas as pd
+from sktime.forecasting.base import ForecastingHorizon
 from sktime.forecasting.model_selection import (
     CutoffSplitter,
     ExpandingWindowSplitter,
@@ -8,7 +9,6 @@ from sktime.forecasting.model_selection import (
     SlidingWindowSplitter,
 )
 from tqdm.auto import tqdm
-from sktime.forecasting.base import ForecastingHorizon
 
 BaseSplitter = Union[
     CutoffSplitter,

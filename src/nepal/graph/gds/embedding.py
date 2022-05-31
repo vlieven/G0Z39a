@@ -168,13 +168,43 @@ class CountyEmbedding:
 
         return connection.query(query)
 
-    def load_dataframe(self, connection: Connection) -> pd.DataFrame:
+    def load_dataframe(
+        self,
+        connection: Connection,
+        *,
+        embedding_dimension: int = 64,
+        weight2: float = 0.0,
+        weight3: float = 0.5,
+        weight4: float = 1.0,
+        normalization: float = -0.5,
+        property_ratio: float = 0.0,
+        self_influence: float = 0.0,
+    ) -> pd.DataFrame:
+        idx: str = "nodeId"
+
         embeddings: pd.DataFrame = pd.DataFrame(
-            [dict(row) for row in self.generate_embedding(connection)]
-        ).set_index("nodeId")
+            [
+                dict(row)
+                for row in self.generate_embedding(
+                    connection,
+                    embedding_dimension=embedding_dimension,
+                    weight2=weight2,
+                    weight3=weight3,
+                    weight4=weight4,
+                    normalization=normalization,
+                    property_ratio=property_ratio,
+                    self_influence=self_influence,
+                )
+            ]
+        ).set_index(idx)
 
         nodes: pd.DataFrame = pd.DataFrame(
             [dict(row) for row in self.node_id_to_fips_mapping(connection)]
-        ).set_index("nodeId")
+        ).set_index(idx)
 
-        return nodes.join(embeddings, how="inner")
+        result: pd.DataFrame = nodes.join(embeddings, how="inner").set_index("fips")
+        return pd.DataFrame(
+            result["embedding"].to_list(),
+            index=result.index,
+            columns=[f"emb_{_}" for _ in range(embedding_dimension)],
+        )

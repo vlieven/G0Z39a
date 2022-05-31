@@ -11,15 +11,15 @@ from sktime.forecasting.base import ForecastingHorizon
 class BaseForecaster(ABC):
     @abstractmethod
     def fit(
-        self, y: pd.DataFrame, X: Optional[Iterable[pd.DataFrame]] = None, **kwargs: Any
+        self, y: pd.DataFrame, Xs: Optional[Iterable[pd.DataFrame]] = None, **kwargs: Any
     ) -> BaseForecaster:
         raise NotImplementedError
 
     def predict(
-        self, fh: ForecastingHorizon, X: Optional[Iterable[pd.DataFrame]] = None, **kwargs: Any
+        self, fh: ForecastingHorizon, Xs: Optional[Iterable[pd.DataFrame]] = None, **kwargs: Any
     ) -> pd.DataFrame:
-        if not X:
-            X = []
+        if not Xs:
+            Xs = []
 
         raise NotImplementedError(
             """Although sktime mirrors the regular fit-predict API provided by scikit-learn,
@@ -107,17 +107,17 @@ class LGBMForecaster(BaseForecaster):
         return self._lag
 
     def fit(
-        self, y: pd.DataFrame, X: Optional[Iterable[pd.DataFrame]] = None, **kwargs: Any
+        self, y: pd.DataFrame, Xs: Optional[Iterable[pd.DataFrame]] = None, **kwargs: Any
     ) -> LGBMForecaster:
-        if not X:
-            X = []
+        if not Xs:
+            Xs = []
 
         targets: Iterable[str] = y.columns
         y_lagged: pd.DataFrame = self._add_lagged_features(y, lag=self._lag, forecasting=False)
 
         X_t: pd.DataFrame = y_lagged.drop(columns=targets)
-        for exogenous in X:
-            X_t = X_t.merge(exogenous, how="left", on=exogenous.index)
+        for exogenous in Xs:
+            X_t = X_t.merge(exogenous, how="left", left_index=True, right_index=True)
 
         y_t: pd.DataFrame = y_lagged[targets]
 
@@ -129,11 +129,11 @@ class LGBMForecaster(BaseForecaster):
         fh: ForecastingHorizon,
         y: pd.DataFrame,
         *,
-        X: Optional[Iterable[pd.DataFrame]] = None,
+        Xs: Optional[Iterable[pd.DataFrame]] = None,
         **kwargs: Any,
     ) -> pd.DataFrame:
-        if not X:
-            X = []
+        if not Xs:
+            Xs = []
 
         cutoff: pd.Timestamp = y.index.get_level_values(-1).max()
         start: pd.Timestamp = cutoff - pd.Timedelta(days=self.lag)
@@ -146,7 +146,7 @@ class LGBMForecaster(BaseForecaster):
         results: List[pd.DataFrame] = []
         for _ in absolute.to_pandas():
             y_pred: pd.DataFrame = self._predict_single_iteration(
-                y_past=y_past, X=X, targets=targets, **kwargs
+                y_past=y_past, Xs=Xs, targets=targets, **kwargs
             )
             results.append(y_pred)
 
@@ -157,7 +157,7 @@ class LGBMForecaster(BaseForecaster):
         self,
         y_past: pd.DataFrame,
         *,
-        X: Iterable[pd.DataFrame],
+        Xs: Iterable[pd.DataFrame],
         targets: Collection[str],
         **kwargs: Any,
     ) -> pd.DataFrame:
@@ -166,8 +166,8 @@ class LGBMForecaster(BaseForecaster):
         )
 
         X_t: pd.DataFrame = y_lagged
-        for exogenous in X:
-            X_t = X_t.merge(exogenous, how="left", on=exogenous.index)
+        for exogenous in Xs:
+            X_t = X_t.merge(exogenous, how="left", left_index=True, right_index=True)
 
         y_pred = self._model.predict(X=X_t, **kwargs)
         return pd.DataFrame(y_pred, index=y_lagged.index, columns=targets)
