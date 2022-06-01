@@ -28,8 +28,13 @@ class Splitter:
         return self._splitter.fh
 
     def train_test_splits(self, y: pd.DataFrame) -> Iterator[Tuple[pd.DataFrame, pd.DataFrame]]:
-        yield from tqdm(
-            self.generate_window_splits(y=y), desc=self._description, total=self.get_n_splits(y)
+        return cast(
+            Iterator[Tuple[pd.DataFrame, pd.DataFrame]],
+            tqdm(
+                self.generate_window_splits(y=y),
+                desc=self._description,
+                total=self.get_n_splits(y),
+            ),
         )
 
     def generate_window_splits(

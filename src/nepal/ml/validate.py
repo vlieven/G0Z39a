@@ -28,7 +28,7 @@ def cross_validate(
 
         with warnings.catch_warnings():
             warnings.simplefilter(action="ignore", category=FutureWarning)
-            score: float = loss(y_true=df_test, y_pred=df_pred, symmetric=True)
+            score: float = loss(y_true=df_test, y_pred=df_pred, y_train=df_train)
             scores.append(score)
 
     return scores
