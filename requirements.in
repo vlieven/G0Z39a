@@ -6,6 +6,10 @@ ipywidgets
 matplotlib
 seaborn
 
+# Apps
+dash
+gunicorn
+
 # Dataframes
 pandas >= 1.4.2
 
