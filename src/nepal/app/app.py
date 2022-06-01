@@ -1,11 +1,12 @@
-import dash
+from typing import cast
+
 import plotly
+from dash import Dash
+from flask import Flask
 
-
-def load_app() -> dash.Dash:
-    return dash.Dash(__name__)
+app: Dash = Dash(__name__)
+server: Flask = cast(Flask, app.server)
 
 
 if __name__ == "__main__":
-    app: dash.Dash = load_app()
     app.run_server(debug=True, host="0.0.0.0", port=8080, use_reloader=False)

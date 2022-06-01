@@ -6,4 +6,7 @@ Dockerfile
 
 notebooks
 
+.git
 .venv
+.idea
+.DS_Store

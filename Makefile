@@ -10,3 +10,9 @@ quality:
 	isort .
 	mypy .
 	pytest -v
+
+build:
+	docker build -t nepal .
+
+run:
+	docker run -p 8080:80 nepal
