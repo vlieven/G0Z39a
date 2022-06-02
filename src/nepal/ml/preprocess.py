@@ -1,11 +1,18 @@
+from abc import ABC, abstractmethod
 from typing import Iterable, Mapping, Sequence
 
 import pandas as pd
 
-from nepal.datasets import Dataset, NYTimes
+from nepal.datasets import Dataset, NYTimes, PopulationDensity
 
 
-class Cases:
+class Preprocessor(ABC):
+    @abstractmethod
+    def preprocessed(self) -> pd.DataFrame:
+        raise NotImplementedError
+
+
+class Cases(Preprocessor):
     def __init__(self, dataset: NYTimes) -> None:
         self._dataset: Dataset = dataset
 
@@ -59,5 +66,19 @@ class Cases:
     @classmethod
     def _calculate_new(cls, df: pd.DataFrame, cols: Iterable[str]) -> pd.DataFrame:
         for col in cols:
-            df[f"new_{col}"] = df[col].diff().fillna(0).clip(lower=0).astype("int64")
+            diff: pd.Series = df.groupby(level="fips")[col].diff().fillna(0)
+            avg: pd.Series = diff.groupby(level="fips").apply(
+                lambda x: x.rolling(7, min_periods=1).mean()
+            )
+            df[f"new_{col}"] = avg.clip(0)
         return df
+
+
+class Population(Preprocessor):
+    def __init__(self, dataset: PopulationDensity):
+        self._dataset: Dataset = dataset
+
+    def preprocessed(self) -> pd.DataFrame:
+        df_population: pd.DataFrame = self._dataset.load()
+
+        return df_population.set_index("fips")

@@ -459,6 +459,8 @@ widgetsnbextension==3.6.0
     # via ipywidgets
 wrapt==1.14.1
     # via deprecated
+xlrd==2.0.1
+    # via -r requirements.in
 zipp==3.8.0
     # via importlib-metadata
 

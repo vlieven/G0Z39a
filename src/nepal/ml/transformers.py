@@ -2,8 +2,17 @@ from __future__ import annotations
 
 from typing import Collection, Dict, Iterable, Optional
 
+import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.preprocessing import FunctionTransformer
+
+__all__ = ["log_transformer", "RollingWindowSum"]
+
+log_transformer: FunctionTransformer = FunctionTransformer(
+    func=np.log1p,
+    inverse_func=np.expm1,
+)
 
 
 class RollingWindowSum(BaseEstimator, TransformerMixin):  # type: ignore[misc]
@@ -20,7 +29,7 @@ class RollingWindowSum(BaseEstimator, TransformerMixin):  # type: ignore[misc]
         target: pd.Series = (
             X[[self._column]]
             .groupby(level=levels, as_index=False)
-            .rolling(self._window, closed="left")
+            .rolling(self._window, min_periods=1, closed="left")
             .sum()[self._column]
         )
         return X.assign(**{self._target: target})

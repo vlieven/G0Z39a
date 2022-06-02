@@ -66,7 +66,12 @@ class CountyEmbedding:
         )
 
         query: Query = Query(template.substitute(projection=self.projection_name))
-        return connection.query(query)
+
+        try:
+            return connection.query(query)
+        except ClientError as e:
+            warnings.warn(str(e))
+            return []
 
     def drop_projection(self, connection: Connection) -> Sequence[Record]:
         template: Template = Template(

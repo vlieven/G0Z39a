@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, Optional, TypeVar
 
 import lightgbm as lgb
 import pandas as pd
 from sklearn.pipeline import Pipeline
 from sktime.forecasting.base import ForecastingHorizon
+
+Data = TypeVar("Data", pd.DataFrame, pd.Series)
 
 
 class BaseForecaster(ABC):
@@ -126,10 +128,13 @@ class BaseForecaster(ABC):
                     lag_
                 )
 
-        # Note: do not refactor index shifting, doing it on y.index directly will not work
         res: pd.DataFrame = pd.DataFrame(data, index=y.index)
-        res.index = res.index.set_levels(res.index.levels[-1].shift(1, freq="D"), level=-1)
-        return res
+        return cls._shift_date_index(res)
+
+    @classmethod
+    def _shift_date_index(cls, y: Data, amount: int = 1) -> Data:
+        y.index = y.index.set_levels(y.index.levels[-1].shift(amount, freq="D"), level=-1)
+        return y
 
 
 class LGBMForecaster(BaseForecaster):
@@ -166,21 +171,23 @@ class LGBMForecaster(BaseForecaster):
         **kwargs: Any,
     ) -> pd.DataFrame:
         cutoff: pd.Timestamp = y.index.get_level_values(-1).max()
-        start: pd.Timestamp = cutoff - pd.Timedelta(days=self.lag)
+        past: pd.Timestamp = cutoff - pd.Timedelta(days=2 * self.lag)
+        start: pd.Timestamp = cutoff + pd.Timedelta(days=1)
 
         target: str = self.__get_target(y)
-        y_past: pd.DataFrame = y.loc[pd.IndexSlice[:, start:cutoff], :]
+        y_past: pd.DataFrame = y.loc[pd.IndexSlice[:, past:cutoff], :]
 
-        results: List[pd.DataFrame] = []
+        date: pd.Timestamp = cutoff
         absolute: ForecastingHorizon = fh.to_absolute(cutoff=cutoff.to_period(freq="D"))
-        for _ in absolute.to_pandas():
+        for period in absolute.to_pandas():
+            date = period.to_timestamp(freq="D")
+
             y_pred: pd.DataFrame = self._predict_single_iteration(
                 y=y_past, Xs=Xs, target=target, **kwargs
             )
 
-            results.append(y_pred)
-            y_past = self._update_y_past(y_past, y_pred)
-        return self._concat(*results)
+            y_past = self._concat(y_past, y_pred)
+        return y_past.loc[pd.IndexSlice[:, start:date], :]
 
     @classmethod
     def __get_target(cls, y: pd.DataFrame) -> str:
@@ -198,22 +205,16 @@ class LGBMForecaster(BaseForecaster):
         target: str,
         **kwargs: Any,
     ) -> pd.DataFrame:
-        y_trans: pd.DataFrame = self._calculate_transformed_features(y)
+        y_trans: pd.DataFrame = self._shift_date_index(self._calculate_transformed_features(y))
         y_lagged: pd.DataFrame = self._add_lagged_features(y, forecasting=True)
 
-        X_t: pd.DataFrame = y_lagged
+        prediction: pd.Timestamp = y_lagged.index.get_level_values(-1).max()
+        X_t: pd.DataFrame = y_lagged.loc[pd.IndexSlice[:, prediction], :]
         for exogenous in (y_trans, *Xs):
             X_t = X_t.merge(exogenous, how="left", left_index=True, right_index=True)
 
         y_pred = self._model.predict(X=X_t, **kwargs)
         return pd.DataFrame(y_pred, index=X_t.index, columns=[target])
-
-    @classmethod
-    def _update_y_past(cls, y_past: pd.DataFrame, y_pred: pd.DataFrame) -> pd.DataFrame:
-        earliest: pd.Timestamp = y_past.index.get_level_values(-1).min()
-
-        y_new: pd.DataFrame = cls._concat(y_past, y_pred)
-        return y_new.drop(earliest, level=-1)
 
     @classmethod
     def _concat(cls, *dfs: pd.DataFrame) -> pd.DataFrame:
