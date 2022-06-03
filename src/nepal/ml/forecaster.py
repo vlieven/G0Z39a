@@ -155,7 +155,8 @@ class LGBMForecaster(BaseForecaster):
 
         X_t: pd.DataFrame = y_lagged.drop(columns=[target])
         for exogenous in (y_trans, *Xs):
-            X_t = X_t.merge(exogenous, how="left", left_index=True, right_index=True)
+            # X_t = X_t.merge(exogenous, how="left", left_index=True, right_index=True)
+            X_t = X_t.join(exogenous, how="left")
 
         y_t: pd.DataFrame = y_lagged[[target]]
 
@@ -183,7 +184,7 @@ class LGBMForecaster(BaseForecaster):
             date = period.to_timestamp(freq="D")
 
             y_pred: pd.DataFrame = self._predict_single_iteration(
-                y=y_past, Xs=Xs, target=target, **kwargs
+                y=y_past, Xs=Xs, target=target, to_predict=date, **kwargs
             )
 
             y_past = self._concat(y_past, y_pred)
@@ -203,13 +204,13 @@ class LGBMForecaster(BaseForecaster):
         *,
         Xs: Iterable[pd.DataFrame],
         target: str,
+        to_predict: pd.Timestamp,
         **kwargs: Any,
     ) -> pd.DataFrame:
         y_trans: pd.DataFrame = self._shift_date_index(self._calculate_transformed_features(y))
         y_lagged: pd.DataFrame = self._add_lagged_features(y, forecasting=True)
 
-        prediction: pd.Timestamp = y_lagged.index.get_level_values(-1).max()
-        X_t: pd.DataFrame = y_lagged.loc[pd.IndexSlice[:, prediction], :]
+        X_t: pd.DataFrame = y_lagged.loc[pd.IndexSlice[:, to_predict], :]
         for exogenous in (y_trans, *Xs):
             X_t = X_t.merge(exogenous, how="left", left_index=True, right_index=True)
 

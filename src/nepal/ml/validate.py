@@ -1,8 +1,15 @@
-import warnings
-from typing import Any, Iterable, List, Optional, Protocol, Sequence
+from __future__ import annotations
 
+import contextlib
+import warnings
+from typing import Any, Iterable, Optional, Protocol, Sequence, cast
+
+import joblib
 import pandas as pd
+from joblib import Parallel, delayed
+from sktime.forecasting.base import ForecastingHorizon
 from sktime.performance_metrics.forecasting import MeanAbsolutePercentageError
+from tqdm.auto import tqdm
 
 from nepal.ml.forecaster import BaseForecaster
 from nepal.ml.splitter import Splitter
@@ -20,15 +27,64 @@ def cross_validate(
     y: pd.DataFrame,
     Xs: Optional[Iterable[pd.DataFrame]] = None,
     loss: LossFunction = MeanAbsolutePercentageError(),
+    threads: int = 1,
 ) -> Sequence[float]:
-    scores: List[float] = []
-    for df_train, df_test in splitter.train_test_splits(y=y):
-        model = forecaster.fit(y=df_train, Xs=Xs)
-        df_pred = model.forecast(fh=splitter.fh, y=df_train, Xs=Xs)
+    with tqdm_joblib(
+        tqdm(desc="Cross Validation", total=splitter.get_n_splits(y))
+    ) as progress_bar:
+        return cast(
+            Sequence[float],
+            Parallel(n_jobs=threads)(
+                delayed(_single_run)(
+                    **{
+                        "forecaster": forecaster,
+                        "df_train": df_train,
+                        "df_test": df_test,
+                        "exogenous": Xs,
+                        "loss": loss,
+                        "fh": splitter.fh,
+                    }
+                )
+                for df_train, df_test in splitter.train_test_splits(y=y)
+            ),
+        )
 
-        with warnings.catch_warnings():
-            warnings.simplefilter(action="ignore", category=FutureWarning)
-            score: float = loss(y_true=df_test, y_pred=df_pred, y_train=df_train)
-            scores.append(score)
 
-    return scores
+def _single_run(
+    forecaster: BaseForecaster,
+    *,
+    df_train: pd.DataFrame,
+    df_test: pd.DataFrame,
+    exogenous: Optional[Iterable[pd.DataFrame]],
+    loss: LossFunction,
+    fh: ForecastingHorizon,
+) -> float:
+    model = forecaster.fit(y=df_train, Xs=exogenous)
+    df_pred = model.forecast(fh=fh, y=df_train, Xs=exogenous)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter(action="ignore", category=FutureWarning)
+        score: float = loss(y_true=df_test, y_pred=df_pred, y_train=df_train)
+    return score
+
+
+@contextlib.contextmanager
+def tqdm_joblib(tqdm_object: tqdm) -> tqdm:
+    """Context manager to patch joblib to report into tqdm progress bar given as argument."""
+
+    class TqdmBatchCompletionCallback(joblib.parallel.BatchCompletionCallBack):  # type: ignore[misc]
+        def __call__(
+            self, *args: Any, **kwargs: Any
+        ) -> joblib.parallel.BatchCompletionCallBack:
+            tqdm_object.update(n=self.batch_size)
+            return cast(
+                joblib.parallel.BatchCompletionCallBack, super().__call__(*args, **kwargs)
+            )
+
+    old_batch_callback = joblib.parallel.BatchCompletionCallBack
+    joblib.parallel.BatchCompletionCallBack = TqdmBatchCompletionCallback
+    try:
+        yield tqdm_object
+    finally:
+        joblib.parallel.BatchCompletionCallBack = old_batch_callback
+        tqdm_object.close()

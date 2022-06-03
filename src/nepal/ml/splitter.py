@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Iterator, Tuple, Union, cast
 
 import pandas as pd
@@ -8,7 +10,6 @@ from sktime.forecasting.model_selection import (
     SingleWindowSplitter,
     SlidingWindowSplitter,
 )
-from tqdm.auto import tqdm
 
 BaseSplitter = Union[
     CutoffSplitter,
@@ -21,21 +22,13 @@ BaseSplitter = Union[
 class Splitter:
     def __init__(self, splitter: BaseSplitter) -> None:
         self._splitter: BaseSplitter = splitter
-        self._description: str = "Train/Test split"
 
     @property
     def fh(self) -> ForecastingHorizon:
         return self._splitter.fh
 
     def train_test_splits(self, y: pd.DataFrame) -> Iterator[Tuple[pd.DataFrame, pd.DataFrame]]:
-        return cast(
-            Iterator[Tuple[pd.DataFrame, pd.DataFrame]],
-            tqdm(
-                self.generate_window_splits(y=y),
-                desc=self._description,
-                total=self.get_n_splits(y),
-            ),
-        )
+        return self.generate_window_splits(y=y)
 
     def generate_window_splits(
         self, y: pd.DataFrame
