@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import contextlib
+import os
 import warnings
 from typing import Any, Iterable, Optional, Protocol, Sequence, cast
 
@@ -27,8 +28,11 @@ def cross_validate(
     y: pd.DataFrame,
     Xs: Optional[Iterable[pd.DataFrame]] = None,
     loss: LossFunction = MeanAbsolutePercentageError(),
-    threads: int = 1,
+    threads: Optional[int] = None,
 ) -> Sequence[float]:
+    if not threads:
+        threads = os.cpu_count()
+
     with tqdm_joblib(
         tqdm(desc="Cross Validation", total=splitter.get_n_splits(y))
     ) as progress_bar:

@@ -155,7 +155,6 @@ class LGBMForecaster(BaseForecaster):
 
         X_t: pd.DataFrame = y_lagged.drop(columns=[target])
         for exogenous in (y_trans, *Xs):
-            # X_t = X_t.merge(exogenous, how="left", left_index=True, right_index=True)
             X_t = X_t.join(exogenous, how="left")
 
         y_t: pd.DataFrame = y_lagged[[target]]
