@@ -6,7 +6,7 @@ import pandas
 import pandas as pd
 import requests
 
-from nepal.datasets import Dataset
+from .base import Dataset
 
 
 class PopulationDensity(Dataset):

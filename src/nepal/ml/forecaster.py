@@ -211,9 +211,9 @@ class LGBMForecaster(BaseForecaster):
 
         X_t: pd.DataFrame = y_lagged.loc[pd.IndexSlice[:, to_predict], :]
         for exogenous in (y_trans, *Xs):
-            X_t = X_t.merge(exogenous, how="left", left_index=True, right_index=True)
+            X_t = X_t.join(exogenous, how="left")
 
-        y_pred = self._model.predict(X=X_t, **kwargs)
+        y_pred = self._model.predict(X=X_t.groupby(level=slice(0, -1)).ffill(), **kwargs)
         return pd.DataFrame(y_pred, index=X_t.index, columns=[target])
 
     @classmethod

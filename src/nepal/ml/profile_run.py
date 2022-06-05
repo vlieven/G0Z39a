@@ -7,9 +7,9 @@ from sktime.forecasting.base import ForecastingHorizon
 from sktime.forecasting.model_selection import SlidingWindowSplitter
 
 from nepal.datasets import NYTimes, PopulationDensity
+from nepal.ml.features.preprocess import Cases, Population
 from nepal.ml.forecaster import LGBMForecaster
 from nepal.ml.loss import mape
-from nepal.ml.preprocess import Cases, Population
 from nepal.ml.splitter import Splitter
 from nepal.ml.transformers import RollingWindowSum, log_transformer
 from nepal.ml.validate import cross_validate

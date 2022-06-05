@@ -26,7 +26,7 @@ def cross_validate(
     *,
     splitter: Splitter,
     y: pd.DataFrame,
-    Xs: Optional[Iterable[pd.DataFrame]] = None,
+    Xs: Optional[pd.DataFrame] = None,
     loss: LossFunction = MeanAbsolutePercentageError(),
     threads: Optional[int] = None,
 ) -> Sequence[float]:
@@ -59,12 +59,18 @@ def _single_run(
     *,
     df_train: pd.DataFrame,
     df_test: pd.DataFrame,
-    exogenous: Optional[Iterable[pd.DataFrame]],
+    exogenous: Optional[pd.DataFrame],
     loss: LossFunction,
     fh: ForecastingHorizon,
 ) -> float:
-    model = forecaster.fit(y=df_train, Xs=exogenous)
-    df_pred = model.forecast(fh=fh, y=df_train, Xs=exogenous)
+    # Align indices and avoid information spill
+    if exogenous:
+        Xs: Iterable[pd.DataFrame] = [df_train.join(exogenous).drop(columns=df_train.columns)]
+    else:
+        Xs = []
+
+    model = forecaster.fit(y=df_train, Xs=Xs)
+    df_pred = model.forecast(fh=fh, y=df_train, Xs=Xs)
 
     with warnings.catch_warnings():
         warnings.simplefilter(action="ignore", category=FutureWarning)

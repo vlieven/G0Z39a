@@ -1,4 +1,5 @@
 import warnings
+from abc import ABC, abstractmethod
 from string import Template
 from typing import Sequence
 
@@ -9,10 +10,13 @@ from neo4j.exceptions import ClientError
 from .. import Connection
 
 
-class CountyEmbedding:
-    def __init__(self, name: str = "counties", random_seed: int = 42):
-        self.projection_name: str = name
-        self.random_seed: int = random_seed
+class BaseEmbedding(ABC):
+    def __init__(self, projection_name: str):
+        self._projection_name: str = projection_name
+
+    @property
+    def projection_name(self) -> str:
+        return self._projection_name
 
     def create_projection(
         self, connection: Connection, force: bool = False
@@ -21,6 +25,49 @@ class CountyEmbedding:
             self.drop_projection(connection)
 
         return self._create_projection(connection)
+
+    def drop_projection(self, connection: Connection) -> Sequence[Record]:
+        template: Template = Template(
+            """
+                CALL gds.graph.drop('$projection')
+                """
+        )
+
+        query: Query = Query(template.substitute(projection=self.projection_name))
+
+        try:
+            return connection.query(query)
+        except ClientError as e:
+            warnings.warn(str(e))
+            return []
+
+    @abstractmethod
+    def _create_projection(self, connection: Connection) -> Sequence[Record]:
+        raise NotImplementedError
+
+    def estimate_memory(
+        self, connection: Connection, *, embedding_dimension: int
+    ) -> Sequence[Record]:
+        template: Template = Template(
+            """
+            CALL gds.fastRP.stream.estimate('$projection', {embeddingDimension: $dimension})
+            YIELD nodeCount, relationshipCount, bytesMin, bytesMax, requiredMemory
+            RETURN nodeCount, relationshipCount, bytesMin, bytesMax, requiredMemory
+            """
+        )
+
+        query: Query = Query(
+            template.substitute(
+                projection=self.projection_name, dimension=str(embedding_dimension)
+            )
+        )
+        return connection.query(query)
+
+
+class CountyEmbedding(BaseEmbedding):
+    def __init__(self, name: str = "counties", random_seed: int = 42):
+        super().__init__(projection_name=name)
+        self.random_seed: int = random_seed
 
     def _create_projection(self, connection: Connection) -> Sequence[Record]:
         """Creates a native projection in Neo4J"""
@@ -72,39 +119,6 @@ class CountyEmbedding:
         except ClientError as e:
             warnings.warn(str(e))
             return []
-
-    def drop_projection(self, connection: Connection) -> Sequence[Record]:
-        template: Template = Template(
-            """
-            CALL gds.graph.drop('$projection')
-            """
-        )
-
-        query: Query = Query(template.substitute(projection=self.projection_name))
-
-        try:
-            return connection.query(query)
-        except ClientError as e:
-            warnings.warn(str(e))
-            return []
-
-    def estimate_memory(
-        self, connection: Connection, *, embedding_dimension: int
-    ) -> Sequence[Record]:
-        template: Template = Template(
-            """
-            CALL gds.fastRP.stream.estimate('$projection', {embeddingDimension: $dimension})
-            YIELD nodeCount, relationshipCount, bytesMin, bytesMax, requiredMemory
-            RETURN nodeCount, relationshipCount, bytesMin, bytesMax, requiredMemory
-            """
-        )
-
-        query: Query = Query(
-            template.substitute(
-                projection=self.projection_name, dimension=str(embedding_dimension)
-            )
-        )
-        return connection.query(query)
 
     def generate_embedding(
         self,

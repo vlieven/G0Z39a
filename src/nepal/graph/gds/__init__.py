@@ -1,3 +1,3 @@
-from .embedding import CountyEmbedding
+from .embedding import BaseEmbedding, CountyEmbedding
 
-__all__ = ["CountyEmbedding"]
+__all__ = ["BaseEmbedding", "CountyEmbedding"]
