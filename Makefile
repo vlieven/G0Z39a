@@ -1,8 +1,10 @@
 # Note: Make is a unix tool, this file is likely useless on Windows
 
 requirements:
+	pip-compile requirements-app.in
+	pip-compile requirements-app-only.in
 	pip-compile requirements.in
-	pip-sync requirements.txt
+	pip-sync requirements-app.txt requirements-app-only.txt requirements.txt
 	pip install -e .
 
 quality:

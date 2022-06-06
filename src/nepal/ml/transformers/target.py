@@ -33,6 +33,9 @@ class TargetTransform:
     def fit_transform(self, X: pd.DataFrame) -> pd.DataFrame:
         return self.fit(X).transform(X)
 
+    def inverse_transform(self, X: pd.DataFrame) -> pd.DataFrame:
+        return self._pipeline.inverse_transform(X)
+
     @classmethod
     def __new_pipeline(cls) -> Pipeline:
         return Pipeline(

@@ -19,15 +19,18 @@ def load_geojson_counties() -> Mapping[str, Any]:
 
 def county_choropleth(df: pd.DataFrame) -> go.Figure:
     counties: Mapping[str, Any] = load_geojson_counties()
+
     fig: go.Figure = px.choropleth(
         df,
         geojson=counties,
-        locations="fips",
-        color="unemp",
-        color_continuous_scale="Viridis",
-        range_color=(0, 12),
+        # fitbounds="geojson",
+        locations=df.index.get_level_values(level="fips"),
+        color="new_cases",
+        color_continuous_scale="orrd",
         scope="usa",
-        labels={"unemp": "unemployment rate"},
-    )
-    fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+        labels={"new_cases": "Additional Covid cases"},
+        animation_frame=df.index.get_level_values(level="date"),
+        # animation_group=df.index.get_level_values(level="fips"),
+    ).update_layout(sliders=[{"currentvalue": {"prefix": "Date: "}}])
+
     return fig

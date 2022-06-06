@@ -1,18 +1,25 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Iterable, Optional, TypeVar
+from pathlib import Path
+from typing import Any, Dict, Final, Iterable, Optional, TypeVar, cast
 
+import joblib
 import lightgbm as lgb
 import pandas as pd
 from sklearn.pipeline import Pipeline
 from sktime.forecasting.base import ForecastingHorizon
 
+from nepal.datasets import Dataset
+
 Data = TypeVar("Data", pd.DataFrame, pd.Series)
 
 
 class BaseForecaster(ABC):
-    def __init__(self, *, lag: int, transformers: Optional[Pipeline] = None) -> None:
+    storage: Final[Path] = Dataset.ROOT_DIR / "models"
+
+    def __init__(self, *, name: str, lag: int, transformers: Optional[Pipeline] = None) -> None:
+        self._name: str = name
         self._lag: int = lag
         self._transformers: Pipeline = transformers or Pipeline(steps=[("passthrough", None)])
 
@@ -136,12 +143,26 @@ class BaseForecaster(ABC):
         y.index = y.index.set_levels(y.index.levels[-1].shift(amount, freq="D"), level=-1)
         return y
 
+    def persist(self) -> None:
+        self.storage.mkdir(parents=True, exist_ok=True)
+
+        joblib.dump(self, self.storage / f"{self._name}.joblib")
+
+    @classmethod
+    def load(cls, name: str) -> BaseForecaster:
+        return cast(BaseForecaster, joblib.load(cls.storage / f"{name}.joblib"))
+
 
 class LGBMForecaster(BaseForecaster):
     def __init__(
-        self, estimator: lgb.LGBMModel, *, lag: int = 0, transformers: Optional[Pipeline] = None
+        self,
+        estimator: lgb.LGBMModel,
+        *,
+        lag: int = 0,
+        transformers: Optional[Pipeline] = None,
+        name: str = "forecast",
     ) -> None:
-        super().__init__(lag=lag, transformers=transformers)
+        super().__init__(name=name, lag=lag, transformers=transformers)
 
         self._model: lgb.LGBMModel = estimator
 
@@ -213,8 +234,13 @@ class LGBMForecaster(BaseForecaster):
         for exogenous in (y_trans, *Xs):
             X_t = X_t.join(exogenous, how="left")
 
-        y_pred = self._model.predict(X=X_t.groupby(level=slice(0, -1)).ffill(), **kwargs)
+        y_pred = self._model.predict(X=self.__ffill(X_t).ffill(), **kwargs)
         return pd.DataFrame(y_pred, index=X_t.index, columns=[target])
+
+    @classmethod
+    def __ffill(cls, X: pd.DataFrame) -> pd.DataFrame:
+        levels: Iterable[str] = X.index.names[0:-1]
+        return X.groupby(level=levels).apply(lambda x: x.ffill())
 
     @classmethod
     def _concat(cls, *dfs: pd.DataFrame) -> pd.DataFrame:

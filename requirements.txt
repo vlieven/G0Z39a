@@ -37,26 +37,22 @@ black[jupyter]==22.3.0
     # via -r requirements.in
 bleach==5.0.0
     # via nbconvert
-brotli==1.0.9
-    # via flask-compress
-certifi==2021.10.8
-    # via requests
+certifi==2022.5.18.1
+    # via
+    #   -c requirements-app.txt
+    #   requests
 cffi==1.15.0
     # via argon2-cffi-bindings
 charset-normalizer==2.0.12
-    # via requests
-click==8.1.2
     # via
+    #   -c requirements-app.txt
+    #   requests
+click==8.1.3
+    # via
+    #   -c requirements-app.txt
     #   black
-    #   distributed
-    #   flask
 cliff==3.10.1
     # via optuna
-cloudpickle==2.1.0
-    # via
-    #   dask
-    #   distributed
-    #   tsfresh
 cmaes==0.8.2
     # via optuna
 cmd2==2.4.1
@@ -64,29 +60,15 @@ cmd2==2.4.1
 colorlog==6.6.0
     # via optuna
 cycler==0.11.0
-    # via matplotlib
-dash==2.4.1
-    # via -r requirements.in
-dash-core-components==2.0.0
-    # via dash
-dash-html-components==2.0.0
-    # via dash
-dash-table==5.0.0
-    # via dash
-dask[dataframe]==2022.5.2
     # via
-    #   distributed
-    #   tsfresh
+    #   -c requirements-app.txt
+    #   matplotlib
 debugpy==1.6.0
     # via ipykernel
 decorator==5.1.1
     # via ipython
 defusedxml==0.7.1
     # via nbconvert
-deprecated==1.2.13
-    # via sktime
-distributed==2022.5.2
-    # via tsfresh
 entrypoints==0.4
     # via
     #   jupyter-client
@@ -96,28 +78,17 @@ executing==0.8.3
     # via stack-data
 fastjsonschema==2.15.3
     # via nbformat
-flask==2.1.2
-    # via
-    #   dash
-    #   flask-compress
-flask-compress==1.12
-    # via dash
 fonttools==4.33.3
-    # via matplotlib
-fsspec==2022.5.0
-    # via dask
+    # via
+    #   -c requirements-app.txt
+    #   matplotlib
 greenlet==1.1.2
     # via sqlalchemy
-gunicorn==20.1.0
-    # via -r requirements.in
-heapdict==1.0.1
-    # via zict
 idna==3.3
     # via
+    #   -c requirements-app.txt
     #   anyio
     #   requests
-importlib-metadata==4.11.4
-    # via flask
 iniconfig==1.1.1
     # via pytest
 ipykernel==6.13.0
@@ -138,21 +109,16 @@ ipywidgets==7.7.0
     # via -r requirements.in
 isort==5.10.1
     # via -r requirements.in
-itsdangerous==2.1.2
-    # via flask
 jedi==0.18.1
     # via ipython
-jinja2==3.1.1
+jinja2==3.1.2
     # via
-    #   distributed
-    #   flask
+    #   -c requirements-app.txt
     #   jupyter-server
     #   jupyterlab
     #   jupyterlab-server
     #   nbconvert
     #   notebook
-joblib==1.1.0
-    # via scikit-learn
 json5==0.9.6
     # via jupyterlab-server
 jsonschema==4.4.0
@@ -188,37 +154,27 @@ jupyterlab-server==2.12.0
 jupyterlab-widgets==1.1.0
     # via ipywidgets
 kiwisolver==1.4.2
-    # via matplotlib
-lightgbm==3.3.2
-    # via -r requirements.in
-llvmlite==0.38.1
-    # via numba
-locket==1.0.0
     # via
-    #   distributed
-    #   partd
+    #   -c requirements-app.txt
+    #   matplotlib
 mako==1.2.0
     # via alembic
 markupsafe==2.1.1
     # via
+    #   -c requirements-app.txt
     #   jinja2
     #   mako
     #   nbconvert
 matplotlib==3.5.2
     # via
-    #   -r requirements.in
-    #   matrixprofile
+    #   -c requirements-app.txt
     #   seaborn
 matplotlib-inline==0.1.3
     # via
     #   ipykernel
     #   ipython
-matrixprofile==1.1.10
-    # via tsfresh
 mistune==0.8.4
     # via nbconvert
-msgpack==1.0.4
-    # via distributed
 mypy==0.942
     # via -r requirements.in
 mypy-extensions==0.4.3
@@ -254,35 +210,20 @@ notebook==6.4.10
     #   widgetsnbextension
 notebook-shim==0.1.0
     # via nbclassic
-numba==0.55.2
+numpy==1.21.6
     # via
-    #   sktime
-    #   stumpy
-numpy==1.21.0
-    # via
+    #   -c requirements-app.txt
     #   cmaes
-    #   dask
-    #   lightgbm
     #   matplotlib
-    #   matrixprofile
-    #   numba
     #   optuna
     #   pandas
-    #   patsy
-    #   pyarrow
-    #   scikit-learn
     #   scipy
     #   seaborn
-    #   sktime
-    #   statsmodels
-    #   stumpy
-    #   tsfresh
 optuna==2.10.0
     # via -r requirements.in
 packaging==21.3
     # via
-    #   dask
-    #   distributed
+    #   -c requirements-app.txt
     #   ipykernel
     #   jupyter-server
     #   jupyterlab
@@ -291,27 +232,16 @@ packaging==21.3
     #   nbconvert
     #   optuna
     #   pytest
-    #   statsmodels
 pandas==1.4.2
     # via
-    #   -r requirements.in
-    #   dask
+    #   -c requirements-app.txt
     #   seaborn
-    #   sktime
-    #   statsmodels
-    #   tsfresh
 pandocfilters==1.5.0
     # via nbconvert
 parso==0.8.3
     # via jedi
-partd==1.2.0
-    # via dask
 pathspec==0.9.0
     # via black
-patsy==0.5.2
-    # via
-    #   statsmodels
-    #   tsfresh
 pbr==5.9.0
     # via
     #   cliff
@@ -321,11 +251,11 @@ pexpect==4.8.0
 pickleshare==0.7.5
     # via ipython
 pillow==9.1.1
-    # via matplotlib
+    # via
+    #   -c requirements-app.txt
+    #   matplotlib
 platformdirs==2.5.1
     # via black
-plotly==5.8.0
-    # via dash
 pluggy==1.0.0
     # via pytest
 prettytable==3.3.0
@@ -336,11 +266,9 @@ prometheus-client==0.14.1
     #   notebook
 prompt-toolkit==3.0.29
     # via ipython
-protobuf==3.11.2
-    # via matrixprofile
-psutil==5.9.0
+psutil==5.9.1
     # via
-    #   distributed
+    #   -c requirements-app.txt
     #   ipykernel
 ptyprocess==0.7.0
     # via
@@ -350,16 +278,15 @@ pure-eval==0.2.2
     # via stack-data
 py==1.11.0
     # via pytest
-pyarrow==8.0.0
-    # via -r requirements.in
 pycparser==2.21
     # via cffi
 pygments==2.11.2
     # via
     #   ipython
     #   nbconvert
-pyparsing==3.0.8
+pyparsing==3.0.9
     # via
+    #   -c requirements-app.txt
     #   cliff
     #   matplotlib
     #   packaging
@@ -371,19 +298,20 @@ pytest==7.1.2
     # via -r requirements.in
 python-dateutil==2.8.2
     # via
+    #   -c requirements-app.txt
     #   jupyter-client
     #   matplotlib
     #   pandas
 pytz==2022.1
     # via
+    #   -c requirements-app.txt
     #   babel
     #   neo4j
     #   pandas
 pyyaml==6.0
     # via
+    #   -c requirements-app.txt
     #   cliff
-    #   dask
-    #   distributed
     #   optuna
 pyzmq==22.3.0
     # via
@@ -392,26 +320,13 @@ pyzmq==22.3.0
     #   notebook
 requests==2.27.1
     # via
-    #   -r requirements.in
+    #   -c requirements-app.txt
     #   jupyterlab-server
-    #   tsfresh
-scikit-learn==1.1.1
-    # via
-    #   -r requirements.in
-    #   lightgbm
-    #   sktime
-    #   tsfresh
 scipy==1.8.1
     # via
-    #   lightgbm
-    #   matrixprofile
+    #   -c requirements-app.txt
     #   optuna
-    #   scikit-learn
     #   seaborn
-    #   sktime
-    #   statsmodels
-    #   stumpy
-    #   tsfresh
 seaborn==0.11.2
     # via -r requirements.in
 send2trash==1.8.0
@@ -420,17 +335,12 @@ send2trash==1.8.0
     #   notebook
 six==1.16.0
     # via
+    #   -c requirements-app.txt
     #   asttokens
     #   bleach
-    #   patsy
-    #   protobuf
     #   python-dateutil
-sktime==0.11.4
-    # via -r requirements.in
 sniffio==1.2.0
     # via anyio
-sortedcontainers==2.4.0
-    # via distributed
 soupsieve==2.3.2.post1
     # via beautifulsoup4
 sqlalchemy==1.4.36
@@ -439,25 +349,12 @@ sqlalchemy==1.4.36
     #   optuna
 stack-data==0.2.0
     # via ipython
-statsmodels==0.13.2
-    # via
-    #   -r requirements.in
-    #   sktime
-    #   tsfresh
 stevedore==3.5.0
     # via cliff
-stumpy==1.11.1
-    # via tsfresh
-tblib==1.7.0
-    # via distributed
-tenacity==8.0.1
-    # via plotly
 terminado==0.13.3
     # via
     #   jupyter-server
     #   notebook
-threadpoolctl==3.1.0
-    # via scikit-learn
 tinycss2==1.1.1
     # via nbconvert
 tokenize-rt==4.2.1
@@ -467,25 +364,20 @@ tomli==2.0.1
     #   black
     #   mypy
     #   pytest
-toolz==0.11.2
-    # via
-    #   dask
-    #   distributed
-    #   partd
 tornado==6.1
     # via
-    #   distributed
+    #   -c requirements-app.txt
     #   ipykernel
     #   jupyter-client
     #   jupyter-server
     #   jupyterlab
     #   notebook
     #   terminado
-tqdm==4.62.0
+tqdm==4.64.0
     # via
+    #   -c requirements-app.txt
     #   -r requirements.in
     #   optuna
-    #   tsfresh
 traitlets==5.1.1
     # via
     #   ipykernel
@@ -499,8 +391,6 @@ traitlets==5.1.1
     #   nbconvert
     #   nbformat
     #   notebook
-tsfresh==0.19.0
-    # via -r requirements.in
 types-requests==2.27.25
     # via -r requirements.in
 types-urllib3==1.26.14
@@ -511,7 +401,7 @@ typing-extensions==4.1.1
     #   mypy
 urllib3==1.26.9
     # via
-    #   distributed
+    #   -c requirements-app.txt
     #   requests
 wcwidth==0.2.5
     # via
@@ -524,18 +414,8 @@ webencodings==0.5.1
     #   tinycss2
 websocket-client==1.3.2
     # via jupyter-server
-werkzeug==2.1.2
-    # via flask
-wheel==0.37.1
-    # via lightgbm
 widgetsnbextension==3.6.0
     # via ipywidgets
-wrapt==1.14.1
-    # via deprecated
-zict==2.2.0
-    # via distributed
-zipp==3.8.0
-    # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
