@@ -64,7 +64,7 @@ def _single_run(
     fh: ForecastingHorizon,
 ) -> float:
     # Align indices and avoid information spill
-    if exogenous:
+    if exogenous is not None:
         Xs: Iterable[pd.DataFrame] = [df_train.join(exogenous).drop(columns=df_train.columns)]
     else:
         Xs = []

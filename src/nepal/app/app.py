@@ -7,8 +7,7 @@ from dash import Dash, Input, Output, dcc, html
 from flask import Flask
 
 from nepal.app.components import county_choropleth, navbar, slider
-from nepal.app.data import MasterData, Predictions
-from nepal.ml.transformers import TargetTransform
+from nepal.app.data import Predictions, ReducedData
 
 app: Dash = Dash(
     __name__,
@@ -21,9 +20,8 @@ app: Dash = Dash(
 
 server: Flask = cast(Flask, app.server)
 
-transform: TargetTransform = TargetTransform()
-master: MasterData = MasterData(transform)
-predictions: Predictions = Predictions(transform)
+reduced: ReducedData = ReducedData()
+predictions: Predictions = Predictions()
 
 
 def load_predictions(
@@ -32,13 +30,15 @@ def load_predictions(
     containment_health_index: float,
     economic_support_index: float,
 ) -> pd.DataFrame:
-    exogenous: pd.DataFrame = master.exogenous()
-    exogenous["StringencyIndex"] = stringency_index
-    exogenous["GovernmentResponseIndex"] = gov_response_index
-    exogenous["ContainmentHealthIndex"] = containment_health_index
-    exogenous["EconomicSupportIndex"] = economic_support_index
+    exogenous: pd.DataFrame = reduced.exogenous()
+    modified: pd.DataFrame = exogenous.assign(**{
+        "StringencyIndex": stringency_index,
+        "GovernmentResponseIndex": gov_response_index,
+        "ContainmentHealthIndex": containment_health_index,
+        "EconomicSupportIndex": economic_support_index,
+    })
 
-    return predictions.load(endogenous=master.target(), exogenous=exogenous)
+    return predictions.load(endogenous=reduced.target(), exogenous=modified)
 
 
 controls = dbc.Card(
@@ -63,7 +63,6 @@ app.layout = html.Div(
                         dbc.Col(
                             dcc.Graph(
                                 id="choropleth_graph",
-                                figure=county_choropleth(load_predictions(0.5, 0.5, 0.5, 0.5)),
                             ),
                             md=8,
                         ),
@@ -95,9 +94,8 @@ def display_choropleth(
     df = load_predictions(
         stringency_index, gov_response_index, containment_health_index, economic_support_index
     )
-    fig = county_choropleth(df)
 
-    fig.update_geos(fitbounds="locations", visible=False)
+    fig = county_choropleth(df)
     fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
     return fig
 

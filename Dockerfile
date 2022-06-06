@@ -17,7 +17,7 @@ RUN pip install -r requirements.txt
 COPY requirements-app-only.txt ./requirements-extra.txt
 RUN pip install -r requirements-extra.txt
 
-COPY datasets ./datasets
+COPY datasets/reduces ./datasets/reduced
 
 COPY src ./src
 COPY setup.cfg ./setup.cfg

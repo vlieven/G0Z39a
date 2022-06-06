@@ -234,7 +234,7 @@ class LGBMForecaster(BaseForecaster):
         for exogenous in (y_trans, *Xs):
             X_t = X_t.join(exogenous, how="left")
 
-        y_pred = self._model.predict(X=self.__ffill(X_t).ffill(), **kwargs)
+        y_pred = self._model.predict(X=self.__ffill(X_t), **kwargs)
         return pd.DataFrame(y_pred, index=X_t.index, columns=[target])
 
     @classmethod
