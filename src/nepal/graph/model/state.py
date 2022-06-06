@@ -17,7 +17,10 @@ class State(Mergeable):
     @classmethod
     def create_constraint(cls, connection: Connection) -> None:
         connection.query(
-            """CREATE CONSTRAINT states IF NOT EXISTS ON (s:State) ASSERT s.code IS UNIQUE"""
+            """
+            CREATE CONSTRAINT states IF NOT EXISTS ON (s:State)
+            ASSERT s.code IS UNIQUE
+            """
         )
 
     def prepare_data(self) -> pd.DataFrame:
@@ -48,7 +51,10 @@ class StateMeasures(Mergeable):
     @classmethod
     def create_constraint(cls, connection: Connection) -> None:
         connection.query(
-            """CREATE CONSTRAINT measures IF NOT EXISTS ON (m:Measures) ASSERT m.id IS UNIQUE"""
+            """
+            CREATE CONSTRAINT measures IF NOT EXISTS ON (m:Measures)
+            ASSERT m.id IS UNIQUE
+            """
         )
 
     def insert_nodes(self, connection: Connection) -> None:

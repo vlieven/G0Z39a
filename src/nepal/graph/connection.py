@@ -17,7 +17,6 @@ from typing import (
     Union,
 )
 
-import numpy as np
 import pandas as pd
 from neo4j import GraphDatabase, Neo4jDriver, Query, Record, Result, Session, basic_auth
 from tqdm.auto import tqdm
@@ -77,7 +76,7 @@ class Neo4jConnection:
     ) -> Sequence[Record]:
         with self.session() as session:
             response: Result = session.run(query, parameters=parameters)
-        return list(response)
+            return list(response)
 
     def insert_data(
         self,

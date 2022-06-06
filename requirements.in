@@ -1,15 +1,15 @@
+# Requirements for app
+-c requirements-app.txt
+
 # Notebooks
 jupyterlab
 ipywidgets
 
-# Dataframes
-pandas
+# Visualization
+seaborn
 
-# Machine Learning
-scikit-learn
-
-# HTTP
-requests
+# Hyperparameter tuning
+optuna
 
 # Progress bars
 tqdm

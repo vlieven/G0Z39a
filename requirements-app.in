@@ -1,0 +1,18 @@
+# Apps
+dash
+dash-bootstrap-components
+gunicorn
+
+# Dataframes
+pandas >= 1.4.2
+pyarrow
+
+# Statistical Learning
+scikit-learn
+lightgbm
+sktime
+statsmodels >= 0.13.2
+tsfresh
+
+# HTTP
+requests

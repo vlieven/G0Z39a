@@ -27,26 +27,32 @@ class GraphDB:
     def close(self) -> None:
         self._connection.close()
 
-    def populate_database(self) -> None:
+    def populate_database(self, full_load: bool = False) -> None:
         infections: NYTimes = NYTimes()
         measures: GovernmentResponse = GovernmentResponse()
         vaccinations: Vaccinations = Vaccinations()
         distances: CountyDistance = CountyDistance(radius=100)
 
-        Steps(
-            Date(infections),
+        steps: Steps = Steps(
             State(measures),
-            StateMeasures(measures),
             County(vaccinations),
-            CountyVaccinations(vaccinations),
             CountyDistances(distances),
-        ).merge_all(self._connection)
+        )
+
+        if full_load:
+            steps.add(
+                Date(infections),
+                StateMeasures(measures),
+                CountyVaccinations(vaccinations),
+            )
+
+        steps.merge_all(self._connection)
 
     def wipe_database(self) -> Sequence[Mapping[Hashable, Any]]:
-        """Remove all nodes, relationships, indexes and constraints."""
+        """Remove all nodes and relationships."""
         return self._connection.query(
             """
-            MATCH (n) DETACH DELETE n
-            CALL apoc.schema.assert({},{},true) YIELD label, key RETURN *
+            MATCH (n) 
+            DETACH DELETE n
             """
         )

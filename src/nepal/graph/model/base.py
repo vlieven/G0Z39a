@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import Sequence
+from typing import List
 
 import pandas as pd
 
@@ -16,8 +18,12 @@ class Mergeable(ABC):
 
 
 class Steps:
-    def __init__(self, *steps: Mergeable):
-        self._steps: Sequence[Mergeable] = steps
+    def __init__(self, *steps: Mergeable) -> None:
+        self._steps: List[Mergeable] = list(steps)
+
+    def add(self, *steps: Mergeable) -> Steps:
+        self._steps.extend(steps)
+        return self
 
     def merge_all(self, connection: Connection) -> None:
         for step in self._steps:

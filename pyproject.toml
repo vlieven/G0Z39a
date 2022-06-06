@@ -35,8 +35,9 @@ skip_gitignore = true
 [tool.mypy]
 python_version = 3.9
 strict = true
-ignore_missing_imports = true
+show_error_codes = true
 warn_unused_ignores = true
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 minversion = "6.0"
