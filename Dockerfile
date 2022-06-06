@@ -17,7 +17,7 @@ RUN pip install -r requirements.txt
 COPY requirements-app-only.txt ./requirements-extra.txt
 RUN pip install -r requirements-extra.txt
 
-COPY datasets/reduces ./datasets/reduced
+COPY datasets/reduced ./datasets/reduced
 
 COPY src ./src
 COPY setup.cfg ./setup.cfg
@@ -30,4 +30,4 @@ USER app
 
 CMD gunicorn src.nepal.app.app:server \
     --bind 0.0.0.0:$PORT \
-    --timeout 240
+    --timeout 60
