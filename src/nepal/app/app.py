@@ -1,12 +1,12 @@
 from typing import cast
 
+import dash_bootstrap_components as dbc
 import pandas as pd
 import plotly.graph_objs as go
-import dash_bootstrap_components as dbc
 from dash import Dash, Input, Output, dcc, html
 from flask import Flask
 
-from nepal.app.components import county_choropleth, slider, navbar
+from nepal.app.components import county_choropleth, navbar, slider
 from nepal.app.data import MasterData, Predictions
 from nepal.ml.transformers import TargetTransform
 
@@ -18,6 +18,7 @@ app: Dash = Dash(
         {"name": "viewport", "content": "width=device-width, initial-scale=1"},
     ],
 )
+
 server: Flask = cast(Flask, app.server)
 
 transform: TargetTransform = TargetTransform()
@@ -37,10 +38,7 @@ def load_predictions(
     exogenous["ContainmentHealthIndex"] = containment_health_index
     exogenous["EconomicSupportIndex"] = economic_support_index
 
-    return predictions.load(
-        endogenous=master.target(),
-        exogenous=exogenous
-    )
+    return predictions.load(endogenous=master.target(), exogenous=exogenous)
 
 
 controls = dbc.Card(
@@ -94,7 +92,9 @@ def display_choropleth(
     containment_health_index: float,
     economic_support_index: float,
 ) -> go.Figure:
-    df = load_predictions(stringency_index, gov_response_index, containment_health_index, economic_support_index)
+    df = load_predictions(
+        stringency_index, gov_response_index, containment_health_index, economic_support_index
+    )
     fig = county_choropleth(df)
 
     fig.update_geos(fitbounds="locations", visible=False)

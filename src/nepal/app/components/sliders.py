@@ -1,5 +1,5 @@
-from dash import dcc, html
 import dash_bootstrap_components as dbc
+from dash import dcc, html
 
 
 def slider(label: str, *, id: str) -> html.Div:

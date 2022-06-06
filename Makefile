@@ -18,3 +18,7 @@ build:
 
 run:
 	docker run -p 8080:80 nepal
+
+deploy:
+	heroku container:push web -a mda-nepal
+	heroku container:release web -a mda-nepal

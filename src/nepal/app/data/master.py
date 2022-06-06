@@ -13,7 +13,9 @@ class MasterData:
     target_transform: Final[TargetTransform] = TargetTransform()
     measures_lag: Final[int] = 12
 
-    def __init__(self, target_transform: TargetTransform, target_window: Union[pd.Timedelta, int] = 30):
+    def __init__(
+        self, target_transform: TargetTransform, target_window: Union[pd.Timedelta, int] = 30
+    ):
         if not isinstance(target_window, pd.Timedelta):
             target_window = pd.Timedelta(days=target_window)
         self._target_window: pd.Timedelta = target_window

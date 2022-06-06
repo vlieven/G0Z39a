@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Final, cast
+from typing import Final, Optional
 
 import joblib
 import pandas as pd
@@ -17,13 +17,21 @@ class TargetTransform:
     __REPOSITORY: Final[Path] = Dataset.ROOT_DIR / "models"
 
     def __init__(self, refresh: bool = False):
-        if refresh:
-            self._pipeline: Pipeline = self.__new_pipeline()
+        self._refresh: bool = refresh
+        self.__pipeline: Optional[Pipeline] = None
+
+    @property
+    def _pipeline(self) -> Pipeline:
+        if self.__pipeline:
+            return self.__pipeline
+        elif self._refresh:
+            self.__pipeline = self.__new_pipeline()
         else:
-            self._pipeline = self._load_pipeline()
+            self.__pipeline = self._load_pipeline()
+        return self.__pipeline
 
     def fit(self, X: pd.DataFrame) -> TargetTransform:
-        self._pipeline = cast(Pipeline, self._pipeline.fit(X))
+        self.__pipeline = self._pipeline.fit(X)
         self._save_pipeline()
         return self
 
