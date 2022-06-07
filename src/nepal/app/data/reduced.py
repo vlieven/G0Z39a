@@ -28,10 +28,8 @@ class ReducedData:
         df: pd.DataFrame = pd.read_parquet(Dataset.ROOT_DIR / "reduced" / "exogenous.parquet")
         lagged_measures = df.groupby(level="state").shift(self.measures_lag)
 
-        Xs = (
-            lagged_measures
-            .groupby(level="state")
-            .apply(lambda x: x.fillna(method="ffill").fillna(method="bfill"))
+        Xs = lagged_measures.groupby(level="state").apply(
+            lambda x: x.fillna(method="ffill").fillna(method="bfill")
         )
 
         return Xs

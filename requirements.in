@@ -5,8 +5,13 @@
 jupyterlab
 ipywidgets
 
+# Additional data
+censusdata
+
 # Visualization
 seaborn
+plotly
+jupyter-dash
 
 # Hyperparameter tuning
 optuna
@@ -27,7 +32,3 @@ isort
 # Typing
 mypy
 types-requests
-
-censusdata
-plotly
-jupyter-dash
