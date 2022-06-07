@@ -1,0 +1,12 @@
+Dockerfile
+
+.gitignore
+.mypy_cache
+.pytest_cache
+
+notebooks
+
+.git
+.venv
+.idea
+.DS_Store
