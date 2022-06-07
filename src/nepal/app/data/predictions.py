@@ -1,3 +1,4 @@
+from functools import lru_cache
 from typing import cast
 
 import joblib
@@ -28,6 +29,8 @@ class Predictions:
             .pipe(self._scale_output)
             .pipe(self._infection_count)
             .loc[forecast.index]
+            .pipe(self._infections_per_10000)
+            .pipe(pd.DataFrame.round)
             .pipe(self._string_index)
         )
 
@@ -38,12 +41,25 @@ class Predictions:
 
     @classmethod
     def _infection_count(cls, df: pd.DataFrame) -> pd.DataFrame:
-        return (
-            RollingWindowSum("new_cases", target="infections", window=10).transform(df).round()
-        )
+        return RollingWindowSum("new_cases", target="infections", window=10).transform(df)
 
     @classmethod
     def _string_index(cls, df: pd.DataFrame) -> pd.DataFrame:
         level: int = -1
         df.index = df.index.set_levels(df.index.levels[level].astype("string"), level=level)
         return df
+
+    @classmethod
+    def _infections_per_10000(cls, df: pd.DataFrame) -> pd.DataFrame:
+        df = df.join(cls._population_count())
+        df["infections_per_10000"] = (df["infections"] / df["population"]) * 10000
+        return df
+
+    @classmethod
+    @lru_cache(maxsize=None)
+    def _population_count(cls) -> pd.DataFrame:
+        return (
+            pd.read_csv(Dataset.ROOT_DIR / "reduced" / "population.csv")
+            .rename(columns={"State": "name", "Code": "state", "Pop": "population"})
+            .set_index("state")
+        )

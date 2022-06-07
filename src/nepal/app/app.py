@@ -6,7 +6,7 @@ import plotly.graph_objs as go
 from dash import Dash, Input, Output, dcc, html
 from flask import Flask
 
-from nepal.app.components import county_choropleth, navbar, slider
+from nepal.app.components import descriptions, navbar, slider, state_choropleth
 from nepal.app.data import Predictions, ReducedData
 
 app: Dash = Dash(
@@ -45,9 +45,9 @@ def load_predictions(
 
 controls = dbc.Card(
     [
-        slider("Stringency Index", id="stringency_index"),
         slider("Government Response Index", id="gov_response_index"),
-        slider("Containment Health Index", id="containment_health_index"),
+        slider("Containment and Health Index", id="containment_health_index"),
+        slider("Stringency Index", id="stringency_index"),
         slider("Economic Support Index", id="economic_support_index"),
     ],
     body=True,
@@ -70,6 +70,16 @@ app.layout = html.Div(
                         ),
                     ],
                     align="center",
+                ),
+                dbc.Row(html.Br()),
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            descriptions(),
+                            id="policy_indices",
+                            md=6,
+                        ),
+                    ]
                 ),
             ],
             fluid=True,
@@ -97,7 +107,7 @@ def display_choropleth(
         stringency_index, gov_response_index, containment_health_index, economic_support_index
     )
 
-    fig = county_choropleth(df)
+    fig = state_choropleth(df)
     fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
     return fig
 

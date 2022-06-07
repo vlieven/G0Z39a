@@ -47,6 +47,7 @@ class StateMeasures(Mergeable):
 
     def merge(self, connection: Connection) -> None:
         self.create_constraint(connection)
+        self.insert_nodes(connection)
 
     @classmethod
     def create_constraint(cls, connection: Connection) -> None:
@@ -61,7 +62,7 @@ class StateMeasures(Mergeable):
         query: Query = Query(
             """
             UNWIND $rows AS row
-            MERGE (m:Measures {id: coalesce(row.RegionCode, "") + ',' + coalesce(date(row.Date), "")})
+            MERGE (m:Measures {id: coalesce(row.RegionCode, "") + "," + coalesce(row.Date, "")})
             ON CREATE SET 
                 m.stringency = row.StringencyIndex,
                 m.government_response = row.GovernmentResponseIndex,
