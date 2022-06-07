@@ -31,12 +31,14 @@ def load_predictions(
     economic_support_index: float,
 ) -> pd.DataFrame:
     exogenous: pd.DataFrame = reduced.exogenous()
-    modified: pd.DataFrame = exogenous.assign(**{
-        "StringencyIndex": stringency_index,
-        "GovernmentResponseIndex": gov_response_index,
-        "ContainmentHealthIndex": containment_health_index,
-        "EconomicSupportIndex": economic_support_index,
-    })
+    modified: pd.DataFrame = exogenous.assign(
+        **{
+            "StringencyIndex": stringency_index,
+            "GovernmentResponseIndex": gov_response_index,
+            "ContainmentHealthIndex": containment_health_index,
+            "EconomicSupportIndex": economic_support_index,
+        }
+    )
 
     return predictions.load(endogenous=reduced.target(), exogenous=modified)
 
